@@ -39,5 +39,6 @@ public:
     ofxGeo::Coordinate sydney;
     ofxGeo::Coordinate estanciaSanPablo;
     ofxGeo::Coordinate astanda;
-   
+    ofVec3f sphericalToCartesian(float latitude, float longitude, float radius);
+
 };

@@ -22,7 +22,7 @@ void ofApp::setup()
     estanciaSanPablo = ofxGeo::Coordinate(-54.31188628368298, -66.8373083046737);
     astanda = ofxGeo::Coordinate(51.16818999537737, 71.42305816258578);
     
-    tileLayer->setCenter(chicago, 6);
+    tileLayer->setCenter(sydney, 6);
     
     earthTex.load("earth.jpg");
     
@@ -31,6 +31,7 @@ void ofApp::setup()
     globe.mapTexCoordsFromTexture(earthTex.getTexture());
     
     mapFbo.allocate(1920, 1080);
+    cam.setNearClip(0.01);
   
 }
 
@@ -45,7 +46,6 @@ void ofApp::update()
     ofClear(0,0);
     tileLayer->draw(0, 0, 1920, 1080);
     mapFbo.end();
-
 
 }
 
@@ -73,11 +73,10 @@ void ofApp::draw()
 
     double latBottomRight = ofDegToRad(mapTileBottomRightGPS.getLatitude());
     double lonBottomRight = ofDegToRad(mapTileBottomRightGPS.getLongitude());
-
-    //this is the total angle covered by the latitude and longditude
+    
     float totalLatAngle = (abs(latTopLeft - latBottomLeft));
     float totalLonAngle = (abs(lonTopRight - lonTopLeft)) ;
-
+        
     //Ill start with a new mesh becuase I am messy
     ofMesh mesh;
 
@@ -95,21 +94,23 @@ void ofApp::draw()
         float lat = latTopLeft - i * latStep;
 
         for (int j = 0; j < numCols; j++) {
-            // Calculate the longitude for this column
-            float lon = lonTopLeft + j * lonStep;
+            // Calculate the longitude for this column we need to shift back 90 degrees
+            float lon = lonTopLeft + j * lonStep - ofDegToRad(90);
+  
 
             // Convert spherical coordinates to Cartesian coordinates
             //I use a slightly larger globe radius so the mesh is easy to see and not exaclty the same as the globe
-            float x =  globeRadius * 1.001 * sin(lat) * cos(lon);
-            float y =  globeRadius * 1.001 * sin(lat) * sin(lon);
-            float z =  globeRadius * 1.001 * cos(lat);
 
+            float x =  -globeRadius * 1.01 * cos(lat) * cos(lon);
+            float z =  globeRadius * 1.01 * cos(lat) * sin(lon);
+            float y =  globeRadius * 1.01 * sin(lat);
+        
             // Add the vertex to the mesh
             mesh.addVertex(ofVec3f(x, y, z));
 
             // Calculate texture coordinates
             float u = static_cast<float>(j) / (numCols - 1);
-            float v = static_cast<float>(i) / (numRows - 1);
+            float v =  static_cast<float>(i) / (numRows - 1);
 
             // Add texture coordinates to the mesh
             mesh.addTexCoord(ofVec2f(u, v));
@@ -183,6 +184,7 @@ void ofApp::keyPressed(int key)
     {
         tileLayer->setCenter(tileLayer->getCenter().getZoomedBy(1));
     }
+    
    
 
 }
